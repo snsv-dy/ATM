@@ -119,7 +119,7 @@ class ATMachineTest {
 
 
     @Test
-    void VerifyInteractionWithBank() throws ATMOperationException, AuthorizationException, AccountException {
+    void VerifyAuthorizationAndChargingInBank() throws ATMOperationException, AuthorizationException, AccountException {
         Money required_money = new Money(200);
 
         Withdrawal expected_withdrawal = Withdrawal.create(List.of(BanknotesPack.create(1, Banknote.PL_200)));
