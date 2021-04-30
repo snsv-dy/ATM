@@ -44,6 +44,7 @@ class ATMachineTest {
 
     @Test
     void setDepositIsWorking(){
+        Mockito.reset(bank);
         assertEquals(atm.getCurrentDeposit(), MoneyDepositBuilder.standard_deposit);
     }
 
