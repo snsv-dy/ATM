@@ -80,4 +80,54 @@ class ATMachineTest {
 
         assertEquals(expected_withdrawal, result);
     }
+
+    @Test
+    void NotEnoughMoneyToWithdraw() throws AuthorizationException {
+        atm.setDeposit(MoneyDepositBuilder.empty_deposit);
+        Money required_money = new Money(200);
+
+        Throwable thrown_exception = assertThrows(ATMOperationException.class, () -> {
+            atm.withdraw(pin, card, required_money);
+        });
+
+        assertEquals(ErrorCode.WRONG_AMOUNT, ((ATMOperationException)thrown_exception).getErrorCode());
+    }
+
+
+    @Test
+    void ImpossibleAmountOfMoneyToWithdraw() throws AuthorizationException, ATMOperationException  {
+        Money required_money = new Money(201);
+
+        Throwable thrown_exception = assertThrows(ATMOperationException.class, () -> {
+            atm.withdraw(pin, card, required_money);
+        });
+
+        assertEquals(ErrorCode.WRONG_AMOUNT, ((ATMOperationException)thrown_exception).getErrorCode());
+    }
+
+    @Test
+    void WithdrawNotSupportedCurrency() {
+        Money required_money = new Money(100, Currency.getInstance("USD"));
+        Mockito.reset(bank);
+
+        Throwable thrown_exception = assertThrows(ATMOperationException.class, () -> {
+            atm.withdraw(pin, card, required_money);
+        });
+
+        assertEquals(ErrorCode.WRONG_CURRENCY, ((ATMOperationException)thrown_exception).getErrorCode());
+    }
+
+
+    @Test
+    void VerifyInteractionWithBank() throws ATMOperationException, AuthorizationException, AccountException {
+        Money required_money = new Money(200);
+
+        Withdrawal expected_withdrawal = Withdrawal.create(List.of(BanknotesPack.create(1, Banknote.PL_200)));
+        Withdrawal result = atm.withdraw(pin, card, required_money);
+
+        assertEquals(expected_withdrawal, result);
+
+        Mockito.verify(bank).autorize(pin.getPIN(), card.getNumber());
+        Mockito.verify(bank).charge(Mockito.any(), eq(required_money));
+    }
 }
